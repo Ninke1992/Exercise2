@@ -1,7 +1,12 @@
 ProjectML
 ==============================
 
-Project to do deep learning
+The function get EEG in order to retrieve eeg data is in src/data/make_dataset.py
+
+The classes BaseDataSet, BaseDataIterator, and PaddedDataIterator are in src/data/dataloader.py
+
+To see all of this in action, use the notebook located at notebooks/excercise/GetData.ipynb where these are called and the results are shown.
+
 
 Project Organization
 ------------

@@ -1,30 +1,19 @@
-# -*- coding: utf-8 -*-
-import click
-import logging
+from __future__ import annotations
+
 from pathlib import Path
-from dotenv import find_dotenv, load_dotenv
+
+import tensorflow as tf
+import torch
+from loguru import logger
+
+Tensor = torch.Tensor
 
 
-@click.command()
-@click.argument("input_filepath", type=click.Path(exists=True))
-@click.argument("output_filepath", type=click.Path())
-def main(input_filepath, output_filepath):
-    """Runs data processing scripts to turn raw data from (../raw) into
-    cleaned data ready to be analyzed (saved in ../processed).
-    """
-    logger = logging.getLogger(__name__)
-    logger.info("making final data set from raw data")
-
-
-if __name__ == "__main__":
-    log_fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    logging.basicConfig(level=logging.INFO, format=log_fmt)
-
-    # not used in this stub but often useful for finding various files
-    project_dir = Path(__file__).resolve().parents[2]
-
-    # find .env automagically by walking up directories until it's found, then
-    # load up the .env entries as environment variables
-    load_dotenv(find_dotenv())
-
-    main()
+def get_eeg(data_dir: Path = Path("../../data/raw")) -> Path:
+    url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00264/EEG%20Eye%20State.arff"
+    datapath = tf.keras.utils.get_file(
+        "eeg", origin=url, untar=False, cache_dir=data_dir
+    )
+    datapath = Path(datapath)
+    logger.info(f"Data is downloaded to {datapath}.")
+    return datapath
