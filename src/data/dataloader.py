@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 from pathlib import Path
+from telnetlib import LINEMODE
 from typing import List, Tuple, Iterator, Sequence
 
 import numpy as np
@@ -27,10 +28,8 @@ class BaseDataset:
             if (
                 int(line[14]) == label
             ):  # if the line has same label as previous line label
-                observation = []
-                for index, i in enumerate(line):  # loop over items in line
-                    if index != 14:  # add all except for element 14, which is label
-                        observation.append(i)
+                listline = list(line)
+                observation = listline[0:14]
                 observation_tensor = torch.Tensor(observation)  # make tensor of line
                 chunck.append(observation_tensor)  # add tensor to chunck
             else:  # if line doesn't have same label as previous line label
@@ -41,10 +40,8 @@ class BaseDataset:
                 chuncks.append(chunck_tuple)  # add this tuple to list of chuncks
                 label = int(line[14])  # set new current label
                 chunck = []  # init empty list for new chunck
-                observation = []  # empty list for new line
-                for index, i in enumerate(line):  # loop over items in line
-                    if index != 14:  # add all except for element 14, which is label
-                        observation.append(i)
+                listline = list(line)
+                observation = listline[0:14]
                 observation_tensor = torch.Tensor(observation)
                 chunck.append(observation_tensor)
         chunck_tuple = (
