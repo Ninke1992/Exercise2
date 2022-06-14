@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Iterator, Sequence
 
 import numpy as np
 import torch
@@ -94,12 +94,13 @@ class BaseDataStreamer:
         self.index_list = np.random.permutation(self.size)
         self.index = 0
 
-    def stream(self) -> Tuple[Tensor, Tensor]:
+    def stream(self) -> Iterator:
         while True:
             if self.index > (self.size - self.batchsize):
                 self.reset_index()
-            x, y = self.batchloop()
-            return torch.stack(x), torch.Tensor(y)
+            batch = self.batchloop()
+            x, y = zip(*batch)
+            yield torch.stack(x), torch.Tensor(y)
 
     def get_chuck(self) -> Tuple[List, int]:
         i = random.randint(
@@ -123,15 +124,13 @@ class BaseDataStreamer:
         else:
             return window, y
 
-    def batchloop(self) -> Tuple[List, List]:
-        X = []  # noqa N806
-        Y = []  # noqa N806
+    def batchloop(self) -> Sequence[Tuple]:
+        batch = []
         for _ in range(self.batchsize):
             x, y = self.get_chuck()
-            X.append(x)
-            Y.append(y)
+            batch.append((x, y))
             self.index += 1
-        return X, Y
+        return batch
 
 
 class PaddedDataStreamer(BaseDataStreamer):
@@ -155,13 +154,14 @@ class PaddedDataStreamer(BaseDataStreamer):
         self.size = len(self.dataset)
         self.reset_index()
 
-    def stream(self) -> Tuple[Tensor, Tensor]:
+    def stream(self) -> Iterator:
         while True:
             if self.index > (self.size - self.batchsize):
                 self.reset_index()
-            X, Y = self.batchloop()
+            batch = self.batchloop()
+            X, Y = zip(*batch)
             X_ = pad_sequence(X, batch_first=True, padding_value=0)  # noqa N806
-            return X_, torch.Tensor(Y)
+            yield X_, torch.Tensor(Y)
 
     def get_chuck(self) -> Tuple[List, int]:
         i = random.randint(
